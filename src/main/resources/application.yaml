@@ -1,0 +1,19 @@
+server:
+  port: 8081
+
+spring:
+  h2:
+    console:
+      enabled: true
+
+
+
+keycloak:
+  realm: SpringBootKeyCloak
+  auth-server-url: http://localhost:8080/
+  resource: login-app
+  public-client: true
+  bearer-only: true
+#  permit-all-paths:
+#    -
+
