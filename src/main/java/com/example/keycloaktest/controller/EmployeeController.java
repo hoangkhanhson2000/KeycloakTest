@@ -2,6 +2,7 @@ package com.example.keycloaktest.controller;
 
 import com.example.keycloaktest.entity.Employee;
 import com.example.keycloaktest.service.EmployeeService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/employee")
+@SecurityRequirement(name = "bearerAuth")
 @Slf4j
 public class EmployeeController {
 
@@ -25,7 +27,7 @@ public class EmployeeController {
 
     //this method can be accessed by user whose role is user
     @GetMapping("/{employeeId}")
-    @RolesAllowed("user")
+//    @RolesAllowed("user")
     public ResponseEntity<Employee> getEmployee(@PathVariable int employeeId) {
         log.info("{}", SecurityContextHolder.getContext().getAuthentication());;
         return ResponseEntity.ok(service.getEmployee(employeeId));
@@ -33,7 +35,7 @@ public class EmployeeController {
 
     //this method can be accessed by user whose role is admin
     @GetMapping()
-    @RolesAllowed("admin")
+//    @RolesAllowed("admin")
     public ResponseEntity<List<Employee>> findALlEmployees() {
         log.info("{}", SecurityContextHolder.getContext().getAuthentication());;
         return ResponseEntity.ok(service.getAllEmployees());

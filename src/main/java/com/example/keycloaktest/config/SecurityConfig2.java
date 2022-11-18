@@ -1,33 +1,39 @@
 package com.example.keycloaktest.config;
 
+import com.example.keycloaktest.filter.BearerTokenFilter;
 import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider;
-
+import org.keycloak.adapters.springsecurity.client.KeycloakClientRequestFactory;
 import org.keycloak.adapters.springsecurity.config.KeycloakWebSecurityConfigurerAdapter;
-import org.keycloak.adapters.springsecurity.filter.KeycloakAuthenticationProcessingFilter;
-import org.keycloak.adapters.springsecurity.filter.KeycloakPreAuthActionsFilter;
-
+import org.keycloak.adapters.springsecurity.management.HttpSessionManager;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
-
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter;
 
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig2 extends KeycloakWebSecurityConfigurerAdapter {
+class SecurityConfig2
+        extends KeycloakWebSecurityConfigurerAdapter {
+
+    private static final String[] WHITELIST_URLS = {
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/actuator/**",
+    };
+    public KeycloakClientRequestFactory keycloakClientRequestFactory;
 
     private final KeycloakLogoutHandler keycloakLogoutHandler;
 
@@ -37,18 +43,50 @@ class SecurityConfig2 extends KeycloakWebSecurityConfigurerAdapter {
 
 
     @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+    public void configureGlobal(AuthenticationManagerBuilder auth) {
         KeycloakAuthenticationProvider authenticationProvider = new KeycloakAuthenticationProvider();
         authenticationProvider.setGrantedAuthoritiesMapper(new SimpleAuthorityMapper());
         auth.authenticationProvider(authenticationProvider);
     }
 
 
+//    @Autowired
+//    public void configureGlobal(AuthenticationManagerBuilder auth) {
+//        KeycloakAuthenticationProvider authenticationProvider = keycloakAuthenticationProvider();
+//        SimpleAuthorityMapper mapper = new SimpleAuthorityMapper();
+//        mapper.setPrefix("");
+//        authenticationProvider.setGrantedAuthoritiesMapper(mapper);
+//        auth.authenticationProvider(authenticationProvider);
+//    }
+
     @Bean
-//    @Override
+    @Override
     protected SessionAuthenticationStrategy sessionAuthenticationStrategy() {
-        return new RegisterSessionAuthenticationStrategy(buildSessionRegistry());
+        return new NullAuthenticatedSessionStrategy(); //for bearer-only services
     }
+//
+//    @Bean
+//    public KeycloakDeployment keycloakDeploymentBuilder(KeycloakSpringBootProperties configuration) {
+//        return KeycloakDeploymentBuilder.build(configuration);
+//    }
+//
+//    @Bean
+//    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+//    public KeycloakRestTemplate keycloakRestTemplate() {
+//        return new KeycloakRestTemplate(keycloakClientRequestFactory);
+//    }
+//
+//    @Bean
+//    @Scope(scopeName = WebApplicationContext.SCOPE_REQUEST, proxyMode = ScopedProxyMode.TARGET_CLASS)
+//    public AccessToken getAccessToken() {
+//        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+//
+//        if (authentication.getPrincipal() instanceof KeycloakPrincipal) {
+//            return ((KeycloakPrincipal) authentication.getPrincipal()).getKeycloakSecurityContext().getToken();
+//        } else {
+//            return new AccessToken();
+//        }
+//    }
 
     @Bean
     protected SessionRegistry buildSessionRegistry() {
@@ -56,23 +94,49 @@ class SecurityConfig2 extends KeycloakWebSecurityConfigurerAdapter {
     }
 
 
-    @Bean
-    public FilterRegistrationBean keycloakAuthenticationProcessingFilterRegistrationBean(
-            KeycloakAuthenticationProcessingFilter filter) {
-        FilterRegistrationBean registrationBean = new FilterRegistrationBean(filter);
-        registrationBean.setEnabled(false);
-        return registrationBean;
-    }
+//    @Bean
+//    public FilterRegistrationBean keycloakAuthenticationProcessingFilterRegistrationBean(
+//            KeycloakAuthenticationProcessingFilter filter) {
+//        FilterRegistrationBean registrationBean = new FilterRegistrationBean(filter);
+//        registrationBean.setEnabled(false);
+//        return registrationBean;
+//    }
+//
+//    @Bean
+//    public FilterRegistrationBean keycloakPreAuthActionsFilterRegistrationBean(
+//            KeycloakPreAuthActionsFilter filter) {
+//        FilterRegistrationBean registrationBean = new FilterRegistrationBean(filter);
+//        registrationBean.setEnabled(false);
+//        return registrationBean;
+//    }
+//
+//    @Bean
+//    public FilterRegistrationBean keycloakAuthenticatedActionsFilterBean(
+//            KeycloakAuthenticatedActionsFilter filter) {
+//        FilterRegistrationBean registrationBean = new FilterRegistrationBean(filter);
+//        registrationBean.setEnabled(false);
+//        return registrationBean;
+//    }
+//
+//    @Bean
+//    public FilterRegistrationBean keycloakSecurityContextRequestFilterBean(
+//            KeycloakSecurityContextRequestFilter filter) {
+//        FilterRegistrationBean registrationBean = new FilterRegistrationBean(filter);
+//        registrationBean.setEnabled(false);
+//        return registrationBean;
+//    }
 
     @Bean
-    public FilterRegistrationBean keycloakPreAuthActionsFilterRegistrationBean(KeycloakPreAuthActionsFilter filter) {
-        FilterRegistrationBean registrationBean = new FilterRegistrationBean(filter);
-        registrationBean.setEnabled(false);
-        return registrationBean;
+//    @Override
+    @ConditionalOnMissingBean(HttpSessionManager.class)
+    protected HttpSessionManager httpSessionManager() {
+        return new HttpSessionManager();
     }
+
+    //    @Bean
+//    @Autowired
     @Override
-    protected void configure(HttpSecurity http) throws Exception
-    {
+    protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
         http
                 .cors()
@@ -80,10 +144,28 @@ class SecurityConfig2 extends KeycloakWebSecurityConfigurerAdapter {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .sessionAuthenticationStrategy(sessionAuthenticationStrategy())
                 .and()
+//
+//
+//                .addFilterAfter(keycloakSecurityContextRequestFilter(), SecurityContextHolderAwareRequestFilter.class)
+//                .addFilterAfter(keycloakAuthenticatedActionsRequestFilter(), KeycloakSecurityContextRequestFilter.class)
+//                .addFilterBefore(new BearerTokenFilter(), UsernamePasswordAuthenticationFilter.class)
+//                .addFilter(new BearerTokenFilter())
+//                .addFilterBefore(keycloakPreAuthActionsFilter(), LogoutFilter.class)
+//                .addFilterBefore(keycloakAuthenticationProcessingFilter(), LogoutFilter.class)
+//                .addFilterAfter(keycloakSecurityContextRequestFilter(), SecurityContextHolderAwareRequestFilter.class)
+//                .addFilterAfter(keycloakAuthenticatedActionsRequestFilter(), KeycloakSecurityContextRequestFilter.class)
+                .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
+                .and()
                 .authorizeRequests()
                 .antMatchers("/employee/{employeeId}").hasRole("user")
-                .antMatchers("/employee").hasRole("admin")
-                .anyRequest().permitAll();
+                .antMatchers("/employee", "/employee/").hasRole("admin")
+                .antMatchers(WHITELIST_URLS).permitAll()
+                .anyRequest().authenticated();
+        http.oauth2Login()
+                .and()
+                .logout()
+                .addLogoutHandler(keycloakLogoutHandler)
+                .logoutSuccessUrl("/");
     }
 
 //    @Bean
@@ -95,19 +177,24 @@ class SecurityConfig2 extends KeycloakWebSecurityConfigurerAdapter {
 //                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 //                .sessionAuthenticationStrategy(sessionAuthenticationStrategy())
 //                .and()
+////                .addFilter(new BearerTokenFilter())
+////
+////////
 //                .authorizeRequests()
-//                .antMatchers("/employee*")
-//                .hasRole("user")
-//                .antMatchers("/employee")
-//                .hasRole("admin")
-//                .anyRequest()
-////                .authenticated();
-//                .permitAll();
+//                .antMatchers("/employee/{employeeId}").hasRole("user")
+//                .antMatchers("/employee", "/employee/").hasRole("admin")
+//                .anyRequest().permitAll();
+//        //                .and()
+////                .addFilterBefore(new BearerTokenFilter(), BearerTokenFilter.class)
+////                .addFilterAfter(new BearerTokenFilter(), BearerTokenFilter.class);
+//
 ////        http.oauth2Login()
 ////                .and()
 ////                .logout()
 ////                .addLogoutHandler(keycloakLogoutHandler)
 ////                .logoutSuccessUrl("/");
 //        return http.build();
+//    }
+
 
 }
