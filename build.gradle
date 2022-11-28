@@ -34,6 +34,12 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-ui:1.6.12'
     annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
 
+    implementation "org.springframework.security:spring-security-core:5.7.4"
+    implementation "org.springframework.security:spring-security-config:5.7.4"
+    implementation "org.springframework.security:spring-security-oauth2-core:5.7.4"
+    implementation "org.springframework.security:spring-security-oauth2-jose:5.7.4"
+    implementation "org.springframework.security:spring-security-oauth2-resource-server:5.7.4"
+
 
 }
 

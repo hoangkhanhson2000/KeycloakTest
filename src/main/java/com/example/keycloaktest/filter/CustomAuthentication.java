@@ -1,62 +1,43 @@
 package com.example.keycloaktest.filter;
 
-import lombok.Data;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
+
 import java.util.Collection;
-import java.util.Collections;
 
-@Data
-public class CustomAuthentication implements Authentication {
 
-    private String userId;
-    private String userName;
+@Setter
+@Getter
+public class CustomAuthentication extends AbstractAuthenticationToken implements Authentication {
+
+
+    private String token;
     private UserDetails userDetails;
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    Collection<GrantedAuthority> authorities = (Collection<GrantedAuthority>) authentication.getAuthorities();
+
+    /**
+     * Creates a token with the supplied array of authorities.
+     *
+     * @param authorities the collection of <tt>GrantedAuthority</tt>s for the principal
+     *                    represented by this authentication object.
+     */
 
 
-
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
+    public CustomAuthentication(Collection<? extends GrantedAuthority> authorities) {
+        super(authorities);
     }
 
     @Override
     public Object getCredentials() {
-        return this.userDetails;
-    }
-
-    @Override
-    public Object getDetails() {
-        return this.userDetails;
+        return this.token;
     }
 
     @Override
     public Object getPrincipal() {
-        return this.userName;
+        return this.token;
     }
-
-    @Override
-    public boolean isAuthenticated() {
-        return true;
-    }
-
-    @Override
-    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
-    }
-
-    @Override
-    public String getName() {
-        return this.userName;
-    }
-
 }

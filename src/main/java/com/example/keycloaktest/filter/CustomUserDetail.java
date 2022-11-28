@@ -1,28 +1,48 @@
 package com.example.keycloaktest.filter;
 
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Collections;
+import javax.management.relation.Role;
+import java.util.*;
 
+@Setter
+@Getter
 public class CustomUserDetail implements UserDetails {
-    User user;
+    private String userId;
+    private String userName;
+    private String phoneNumber;
+    private GrantedAuthoritiesMapper grantedAuthoritiesMapper;
+
+    public void setGrantedAuthoritiesMapper(GrantedAuthoritiesMapper grantedAuthoritiesMapper) {
+        this.grantedAuthoritiesMapper = grantedAuthoritiesMapper;
+    }
+
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority("ADMIN" ));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return Collections.emptySet();
+        }
+        return Collections.unmodifiableSet(new HashSet<GrantedAuthority>(authentication.getAuthorities()));
     }
 
     @Override
     public String getPassword() {
-        return  user.getPassword();
+        return null;
     }
+
 
     @Override
     public String getUsername() {
-        return user.getUsername();
+        return userName;
     }
 
     @Override
@@ -44,4 +64,6 @@ public class CustomUserDetail implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    
 }
