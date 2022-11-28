@@ -83,7 +83,7 @@ class SecurityConfig2
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .sessionAuthenticationStrategy(sessionAuthenticationStrategy())
                 .and()
-//
+
 //
                 .addFilterAfter(new BearerTokenFilter(JwtAuthenticationProvider), LogoutFilter.class)
 //
